@@ -7,8 +7,14 @@ import 'login_screen.dart';
 import 'perfil_screen.dart';
 import 'registro_alumno_screen.dart';
 
+/// Panel principal que se muestra después del inicio de sesión.
+///
+/// Es [StatefulWidget] porque el resumen (total, aprobados, promedio) debe
+/// recalcularse cada vez que el usuario vuelve de registrar o eliminar alumnos.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.correo});
+
+  /// Correo con el que se inició sesión (llega como argumento desde el login).
   final String correo;
 
   @override
@@ -16,13 +22,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Abre otra pantalla con transición de iOS y espera a que el usuario vuelva.
+  /// `await` hace que el setState se ejecute recién al regresar, con lo que el
+  /// resumen se actualiza sin necesidad de un gestor de estado externo.
   Future<void> _abrir(Widget pantalla) async {
     await Navigator.push(context, CupertinoPageRoute(builder: (_) => pantalla));
-    setState(() {}); // refresca el resumen al volver
+    setState(() {});
   }
 
+  /// Alerta Cupertino para confirmar el cierre de sesión.
   void _confirmarCierre() {
-    // Alerta Cupertino de cierre de sesión
+    // showCupertinoDialog muestra el diálogo centrado con el fondo oscurecido.
+    // Se usa `ctx` (contexto del diálogo) para cerrarlo y `context` (contexto de
+    // la pantalla) para navegar, porque son dos rutas distintas en el Navigator.
     showCupertinoDialog<void>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
@@ -36,10 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Quedarme'),
           ),
+          // isDestructiveAction pinta la acción en rojo (convención de iOS).
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(ctx);
+              // pushAndRemoveUntil con (_) => false borra todo el historial:
+              // después de salir, el botón "atrás" no puede volver al panel.
               Navigator.pushAndRemoveUntil(
                 context,
                 CupertinoPageRoute(builder: (_) => const LoginScreen()),
@@ -77,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             _resumen(),
             const TituloSeccion('Opciones'),
+            // Menú de opciones como lista agrupada de ListTiles Cupertino.
             CupertinoListSection.insetGrouped(
               margin: EdgeInsets.zero,
               children: [
@@ -109,6 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Tarjeta con degradado que resume la sección. Los valores se leen del
+  /// repositorio global en cada build, por eso siempre están al día.
   Widget _resumen() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -139,6 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Un número grande con su etiqueta. Expanded reparte el ancho en partes iguales.
   Widget _dato(String valor, String etiqueta) {
     return Expanded(
       child: Column(
@@ -153,6 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Fabrica una opción del menú. `.notched` es la variante de iOS con el icono
+  /// dentro de un cuadrado de color y el separador alineado al texto.
+  /// El callback [onTap] se pasa como argumento para reutilizar el mismo widget.
   CupertinoListTile _opcion(
       IconData icono, Color color, String titulo, String sub, VoidCallback onTap) {
     return CupertinoListTile.notched(

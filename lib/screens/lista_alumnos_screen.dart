@@ -5,8 +5,11 @@ import '../models/alumno.dart';
 import '../theme.dart';
 import 'registro_alumno_screen.dart';
 
+/// Opciones del control segmentado. Un enum evita comparar textos ("Todos",
+/// "Aprobados"...) y el compilador avisa si falta un caso en el switch.
 enum Filtro { todos, aprobados, desaprobados }
 
+/// Listado de alumnos con búsqueda, filtro por estado y opciones por fila.
 class ListaAlumnosScreen extends StatefulWidget {
   const ListaAlumnosScreen({super.key});
 
@@ -15,9 +18,14 @@ class ListaAlumnosScreen extends StatefulWidget {
 }
 
 class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
+  // Estado local de la pantalla: filtro elegido y texto de búsqueda.
   Filtro _filtro = Filtro.todos;
   String _busqueda = '';
 
+  /// Lista filtrada que se pinta en pantalla. Es un getter, así se recalcula
+  /// en cada build a partir del repositorio sin guardar una copia aparte.
+  /// Combina dos condiciones: el nombre contiene el texto buscado (sin
+  /// distinguir mayúsculas) y el alumno cumple el filtro seleccionado.
   List<Alumno> get _visibles {
     final texto = _busqueda.toLowerCase();
     return repositorio.todos.where((a) {
@@ -33,14 +41,16 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
     }).toList();
   }
 
+  /// Botón "+" de la barra: abre el registro y refresca la lista al volver.
   Future<void> _nuevo() async {
     await Navigator.push(
         context, CupertinoPageRoute(builder: (_) => const RegistroAlumnoScreen()));
     setState(() {});
   }
 
+  /// Hoja de acciones Cupertino (equivalente iOS del BottomSheet de Material).
+  /// Sube desde abajo y separa el botón "Cancelar" de las demás acciones.
   void _opciones(Alumno alumno) {
-    // Hoja de acciones Cupertino para cada alumno
     showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
@@ -64,6 +74,8 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
     );
   }
 
+  /// Segunda confirmación antes de borrar, porque la acción no se puede deshacer.
+  /// setState envuelve la eliminación para que la lista se repinte de inmediato.
   void _confirmarEliminar(Alumno alumno) {
     showCupertinoDialog<void>(
       context: context,
@@ -115,6 +127,8 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
               padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
+                // Control segmentado de iOS. Sus opciones se definen con un
+                // Map<Filtro, Widget>: la clave es el valor y el widget, la etiqueta.
                 child: CupertinoSlidingSegmentedControl<Filtro>(
                   groupValue: _filtro,
                   onValueChanged: (v) => setState(() => _filtro = v ?? Filtro.todos),
@@ -144,6 +158,8 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
                       child: Text('No hay alumnos para mostrar',
                           style: TextStyle(color: AppColors.textoSuave)),
                     )
+                  // ListView.separated construye solo las filas visibles
+                  // (perezoso) y agrega un espacio entre cada tarjeta.
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: lista.length,
@@ -157,6 +173,10 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
     );
   }
 
+  /// Tarjeta (Card) de un alumno: iniciales, nombre, estado y nota.
+  /// El color verde/rojo depende de si aprobó; la nota se rellena a dos
+  /// dígitos (09, 08) para que todas las insignias tengan el mismo ancho.
+  /// Mantener presionada la tarjeta abre las mismas opciones que el botón ⋮.
   Widget _fila(Alumno a) {
     final color = a.aprobado ? AppColors.aprobado : AppColors.desaprobado;
     return GestureDetector(
@@ -202,6 +222,10 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
   }
 }
 
+/// Avatar circular con iniciales. La librería Cupertino no trae un
+/// CircleAvatar como Material, así que se arma con un Container circular.
+/// El tamaño de letra es proporcional a [size] para reutilizarlo en el
+/// listado (44 px) y en el perfil (96 px).
 class CircleAvatarCupertino extends StatelessWidget {
   const CircleAvatarCupertino({super.key, required this.texto, this.size = 44});
   final String texto;

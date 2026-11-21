@@ -3,6 +3,11 @@ import 'package:flutter/cupertino.dart';
 import '../theme.dart';
 import 'home_screen.dart';
 
+/// Pantalla de inicio de sesión (primera pantalla de la app).
+///
+/// No se conecta a un servidor: valida el formato de los datos en el cliente
+/// y, si son correctos, entra al panel. Es StatefulWidget porque guarda si la
+/// contraseña está oculta o visible.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,6 +18,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _correoCtrl = TextEditingController();
   final _claveCtrl = TextEditingController();
+
+  // Controla el ícono del ojo: true = contraseña oculta con puntos.
   bool _ocultarClave = true;
 
   @override
@@ -22,6 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Expresión regular para un correo con forma usuario@dominio.ext.
+  /// \w acepta letras, números y "_"; también se permiten "." y "-".
   bool _correoValido(String correo) =>
       RegExp(r'^[\w.\-]+@[\w\-]+\.[\w.\-]+$').hasMatch(correo);
 
@@ -30,7 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final clave = _claveCtrl.text;
 
     if (!_correoValido(correo) || clave.length < 6) {
-      // Alerta Cupertino de validación
+      // Alerta Cupertino de validación. Con isDefaultAction el botón se
+      // muestra en negrita, que en iOS indica la acción principal.
       showCupertinoDialog<void>(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
@@ -54,6 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // pushReplacement reemplaza el login por el panel: el usuario no puede
+    // volver al login con "atrás". El correo viaja como argumento al panel.
     Navigator.pushReplacement(
       context,
       CupertinoPageRoute(builder: (_) => HomeScreen(correo: correo)),
@@ -127,6 +139,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: EdgeInsets.only(left: 10),
                       child: Icon(CupertinoIcons.lock, color: AppColors.textoSuave),
                     ),
+                    // Botón del ojo: setState alterna _ocultarClave y redibuja
+                    // el campo mostrando u ocultando la contraseña.
                     suffix: CupertinoButton(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       minimumSize: Size.zero,

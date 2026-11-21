@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
 /// Paleta de la app: azul petróleo con acento coral.
+/// Centralizar los colores en constantes evita repetir códigos hexadecimales
+/// en cada pantalla y facilita cambiar el tema global.
 class AppColors {
   static const primario = Color(0xFF0E7490);
   static const primarioOscuro = Color(0xFF155E75);
@@ -14,6 +16,8 @@ class AppColors {
 }
 
 /// Contenedor blanco con bordes redondeados usado en toda la app.
+/// Cumple el papel del Card de Material, que no existe en la librería Cupertino.
+/// [padding] es un argumento opcional: si no se envía, usa 16 px.
 class Tarjeta extends StatelessWidget {
   const Tarjeta({super.key, required this.child, this.padding});
 

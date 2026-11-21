@@ -16,6 +16,9 @@ class NotasApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // CupertinoApp en lugar de MaterialApp: todas las pantallas, rutas y
+    // transiciones usan el estilo de iOS. El tema global (CupertinoThemeData)
+    // define el color principal que heredan botones, enlaces y barras.
     return const CupertinoApp(
       title: 'Registro de Notas',
       debugShowCheckedModeBanner: false,
@@ -30,4 +33,6 @@ class NotasApp extends StatelessWidget {
 }
 
 /// Repositorio en memoria compartido por todas las pantallas.
+/// Al ser una variable global, el panel y el listado ven los mismos datos
+/// sin pasarse la lista como argumento en cada navegación.
 final AlumnoRepositorio repositorio = AlumnoRepositorio();

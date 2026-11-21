@@ -4,6 +4,7 @@ import '../main.dart';
 import '../models/alumno.dart';
 import '../theme.dart';
 
+/// Formulario para registrar un alumno nuevo con su nota final.
 class RegistroAlumnoScreen extends StatefulWidget {
   const RegistroAlumnoScreen({super.key});
 
@@ -12,11 +13,16 @@ class RegistroAlumnoScreen extends StatefulWidget {
 }
 
 class _RegistroAlumnoScreenState extends State<RegistroAlumnoScreen> {
+  // Un controlador por campo para leer lo que escribió el usuario.
   final _nombresCtrl = TextEditingController();
   final _apellidosCtrl = TextEditingController();
   final _notaCtrl = TextEditingController();
+
+  // Mensajes de validación que se muestran debajo del formulario.
   final List<String> _errores = [];
 
+  /// Los controladores reservan recursos; se liberan al cerrar la pantalla
+  /// para evitar fugas de memoria.
   @override
   void dispose() {
     _nombresCtrl.dispose();
@@ -25,11 +31,17 @@ class _RegistroAlumnoScreenState extends State<RegistroAlumnoScreen> {
     super.dispose();
   }
 
+  /// Valida los datos y, si son correctos, guarda el alumno.
   void _guardar() {
+    // trim() quita espacios para que "   " no cuente como nombre válido.
     final nombres = _nombresCtrl.text.trim();
     final apellidos = _apellidosCtrl.text.trim();
+    // tryParse devuelve null si el texto no es un entero (ej. "abc" o "15.5"),
+    // en vez de lanzar una excepción como int.parse.
     final nota = int.tryParse(_notaCtrl.text.trim());
 
+    // "Collection if": cada mensaje se agrega a la lista solo si su condición
+    // se cumple. Así se muestran todos los errores a la vez, no uno por uno.
     final errores = <String>[
       if (nombres.isEmpty) 'Ingresa los nombres.',
       if (apellidos.isEmpty) 'Ingresa los apellidos.',
@@ -40,9 +52,12 @@ class _RegistroAlumnoScreenState extends State<RegistroAlumnoScreen> {
       ..addAll(errores));
     if (errores.isNotEmpty) return;
 
+    // Aquí `nota` ya no puede ser null (lo descartó la validación), por eso el `!`.
     final alumno = Alumno(nombres: nombres, apellidos: apellidos, nota: nota!);
     repositorio.agregar(alumno);
 
+    // Alerta de éxito. Al pulsar "Listo" se cierran dos rutas: primero el
+    // diálogo (ctx) y luego el formulario (context), volviendo a la pantalla anterior.
     showCupertinoDialog<void>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
@@ -63,6 +78,9 @@ class _RegistroAlumnoScreenState extends State<RegistroAlumnoScreen> {
     );
   }
 
+  /// Fila del formulario: etiqueta a la izquierda y campo sin borde a la derecha,
+  /// como en los formularios de Ajustes de iOS. [teclado] es un argumento
+  /// opcional con nombre para pedir el teclado numérico solo en la nota.
   Widget _campo(String etiqueta, TextEditingController ctrl, String placeholder,
       {TextInputType? teclado}) {
     return CupertinoFormRow(
@@ -110,6 +128,7 @@ class _RegistroAlumnoScreenState extends State<RegistroAlumnoScreen> {
                 _campo('Nota final', _notaCtrl, '0 – 20', teclado: TextInputType.number),
               ],
             ),
+            // El bloque de errores solo existe en el árbol si hay errores.
             if (_errores.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
